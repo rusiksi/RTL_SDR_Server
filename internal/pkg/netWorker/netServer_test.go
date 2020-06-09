@@ -4,28 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"sync"
 	"testing"
+	"time"
 )
 
-var tcp, udp Server
-var wg sync.WaitGroup
-var pkgChn chan []byte
+var tcpServer Server
 
 func init() {
-	// Start the new server
-	tcp, err := NewServer("tcp", "127.0.0.1:62001")
 
-	pkgChn = make(chan []byte)
+	config := NewConfig()
+	config.Address = "127.0.0.1:62001"
+	tcpServer, err := NewServer(config)
+
 	if err != nil {
 		log.Println("error starting TCP server")
 		return
 	}
-	wg.Add(1)
 	go func() {
-		tcp.Run(&wg, pkgChn)
+		tcpServer.Run()
 	}()
-	wg.Wait()
+	time.Sleep(2 * time.Second)
 }
 
 func TestNETServer_Running(t *testing.T) {
@@ -61,13 +59,21 @@ func TestNETServer_Running(t *testing.T) {
 func TestNETServer_SingleClient(t *testing.T) {
 
 	var tests = []struct {
+		name string
 		send []byte
 		size int
 		want int
 	}{
-		{[]byte{0x0, 0x0}, 0, 0},
-		{[]byte{0x1, 0x2}, 2, 2},
-		{[]byte{}, 0, 0},
+		{"0 - size, 0 - frame", []byte{0x0, 0x0}, 2, 2},
+		{"Byte package", []byte{
+			0x2d, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0xbe, 0xba, 0xfe, 0xca, 0x49, 0x6d, 0x69, 0x74,
+			0x5f, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x17, 0x8c, 0xa1, 0x21, 0xac, 0xea, 0x20, 0x0e, 0x9f, 0x03, 0x0b, 0x0e, 0x72, 0x01, 0x00,
+			0x00, 0x01, 0x00, 0x00, 0x00, 0xbe, 0xba, 0xad, 0xab, 0x49, 0x6d, 0x69, 0x74, 0x5f, 0x31, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x17, 0x8c,
+			0xa1, 0x21, 0xac, 0xea, 0x20, 0x0e, 0x9f, 0x03, 0x0b, 0x0e, 0x72, 0x01, 0x00, 0x00, 0x01, 0x00,
+			0x00, 0x00,
+		}, 98, 98},
 	}
 
 	type server struct {
@@ -93,18 +99,17 @@ func TestNETServer_SingleClient(t *testing.T) {
 
 	for _, tt := range tests {
 
-		testname := fmt.Sprintf("%d,%d", tt.size, tt.want)
+		testname := fmt.Sprintf("%v", tt.name)
 		t.Run(testname, func(t *testing.T) {
 			ans, errSend := con.Write(tt.send)
 			if errSend != nil {
 				t.Errorf("error = %s", errSend)
 			}
 			if ans != tt.want {
-				t.Errorf("got %d, want %d", ans, tt.want)
+				t.Errorf("Tast:%v error. Got %d, Want %d", tt.name, ans, tt.want)
 			}
 		})
 	}
-	fmt.Println(<-pkgChn)
 	con.Close()
 
 }
@@ -112,13 +117,13 @@ func TestNETServer_SingleClient(t *testing.T) {
 func TestNETServer_SeveralClients(t *testing.T) {
 
 	var tests = []struct {
+		name string
 		send []byte
 		size int
 		want int
 	}{
-		{[]byte{0x0, 0x0}, 0, 0},
-		{[]byte{}, 0, 0},
-		{[]byte{
+		{"0 - size, 0 - frame", []byte{0x0, 0x0}, 2, 2},
+		{"Byte package", []byte{
 			0x2d, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0xbe, 0xba, 0xfe, 0xca, 0x49, 0x6d, 0x69, 0x74,
 			0x5f, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x17, 0x8c, 0xa1, 0x21, 0xac, 0xea, 0x20, 0x0e, 0x9f, 0x03, 0x0b, 0x0e, 0x72, 0x01, 0x00,
@@ -136,8 +141,10 @@ func TestNETServer_SeveralClients(t *testing.T) {
 		{"tcp", "127.0.0.1:62001"},
 		{"tcp", "127.0.0.1:62001"},
 		{"tcp", "127.0.0.1:62001"},
+		{"tcp", "127.0.0.1:62001"},
+		{"tcp", "127.0.0.1:62001"},
 	}
-	for _, serv := range servers {
+	for inx, serv := range servers {
 		con, err := net.Dial("tcp", serv.addr)
 
 		if err != nil {
@@ -153,19 +160,17 @@ func TestNETServer_SeveralClients(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-
-			testname := fmt.Sprintf("%d,%d", tt.size, tt.want)
+			testname := fmt.Sprintf("%v", tt.name)
 			t.Run(testname, func(t *testing.T) {
 				ans, errSend := con.Write(tt.send)
 				if errSend != nil {
 					t.Errorf("error = %s", errSend)
 				}
 				if ans != tt.want {
-					t.Errorf("got %d, want %d", ans, tt.want)
+					t.Errorf("Test %d:%v error. Got %d, Want %d", inx, tt.name, ans, tt.want)
 				}
 			})
 		}
-		fmt.Println(<-pkgChn)
 		con.Close()
 	}
 }
