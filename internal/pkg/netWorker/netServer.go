@@ -1,6 +1,7 @@
 package netWorker
 
 import (
+	"RTL_SDR_Server/configs"
 	"RTL_SDR_Server/internal/pkg/pkgProcessor"
 	"errors"
 	"fmt"
@@ -16,7 +17,7 @@ type Server interface {
 }
 
 // Фабричный метод для создания инстанса конкретного класса сервера
-func NewServer(config *Config) (Server, error) {
+func NewServer(config *configs.Config) (Server, error) {
 
 	if config == nil {
 		return nil, errors.New("Invalid config")

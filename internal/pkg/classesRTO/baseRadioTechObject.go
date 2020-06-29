@@ -16,17 +16,18 @@ var constLonLSB float64 = 360.0 / math.Pow(2, 31)
 //ЦМР для распаковки значения широты
 var constLatLSB float64 = 180.0 / math.Pow(2, 31)
 
+
 type BaseRTO struct {
-	icao      uint32    // ICAO самолёта
-	flight    string    // наименование рейса
-	altitude  float32   // высота
-	speed     float32   // скорость
-	course    float32   // курс
-	latitude  float64   // широта
-	longitude float64   // долгота
-	seen      int64     // время последней регистрации в эфире в UTC
-	dateTime  time.Time // время последней регистрации в эфире
-	messages  uint32    // количество сообщений
+	Icao      uint32    `json:"icao"`// ICAO самолёта
+	Flight    string    `json:"flight"`// наименование рейса
+	Altitude  float32   `json:"altitude"`// высота
+	Speed     float32   `json:"speed"`// скорость
+	Course    float32   `json:"course"`// курс
+	Latitude  float64   `json:"latitude"`// широта
+	Longitude float64   `json:"longitude"`// долгота
+	Seen      int64     `json:"seen"`// время последней регистрации в эфире в UTC
+	DateTime  time.Time `json:"dateTime"`// время последней регистрации в эфире
+	Messages  uint32    `json:"messages"`// количество сообщений
 }
 
 //кадр данных содержит следующую информацию
@@ -52,41 +53,41 @@ func (o *BaseRTO) Unserialize(data []byte) {
 
 	// ICAO - 0 : 4
 	startByteIndex, offset = 0, sizeInt32
-	o.icao = binary.LittleEndian.Uint32(data[startByteIndex:offset])
+	o.Icao = binary.LittleEndian.Uint32(data[startByteIndex:offset])
 
 	//flight - 4:13
 	startByteIndex, offset = offset, offset+sizeFlightStr
-	o.flight = string(data[startByteIndex:offset])
+	o.Flight = string(data[startByteIndex:offset])
 
 	//altitude - 13:17
 	startByteIndex, offset = offset, offset+sizeInt32
-	o.altitude = float32(binary.LittleEndian.Uint32(data[startByteIndex:offset])) / constValueLSB
+	o.Altitude = float32(binary.LittleEndian.Uint32(data[startByteIndex:offset])) / constValueLSB
 
 	//speed - 17:21
 	startByteIndex, offset = offset, offset+sizeInt32
-	o.speed = float32(binary.LittleEndian.Uint32(data[startByteIndex:offset])) / constValueLSB
+	o.Speed = float32(binary.LittleEndian.Uint32(data[startByteIndex:offset])) / constValueLSB
 
 	//course - 21:25
 	startByteIndex, offset = offset, offset+sizeInt32
-	o.course = float32(binary.LittleEndian.Uint32(data[startByteIndex:offset])) / constValueLSB
+	o.Course = float32(binary.LittleEndian.Uint32(data[startByteIndex:offset])) / constValueLSB
 
 	//latitude - 25:29
 	startByteIndex, offset = offset, offset+sizeInt32
-	o.latitude = float64(binary.LittleEndian.Uint32(data[startByteIndex:offset])) * constLatLSB
+	o.Latitude = float64(binary.LittleEndian.Uint32(data[startByteIndex:offset])) * constLatLSB
 
 	//longitude - 29 :33
 	startByteIndex, offset = offset, offset+sizeInt32
-	o.longitude = float64(binary.LittleEndian.Uint32(data[startByteIndex:offset])) * constLonLSB
+	o.Longitude = float64(binary.LittleEndian.Uint32(data[startByteIndex:offset])) * constLonLSB
 
 	//seen - 33 : 41
 	startByteIndex, offset = offset, offset+sizeInt64
-	o.seen = int64(binary.LittleEndian.Uint64(data[startByteIndex:offset]))
+	o.Seen = int64(binary.LittleEndian.Uint64(data[startByteIndex:offset]))
 
-	o.dateTime = time.Unix(o.seen/1000, 0)
+	o.DateTime = time.Unix(o.Seen/1000, 0)
 
 	//messages - 41 : 45
 	startByteIndex, offset = offset, offset+sizeInt32
-	o.messages = binary.LittleEndian.Uint32(data[startByteIndex:offset])
+	o.Messages = binary.LittleEndian.Uint32(data[startByteIndex:offset])
 }
 
 func (o *BaseRTO) String() string {
@@ -99,14 +100,14 @@ func (o *BaseRTO) String() string {
 		"\t seen %d\n"+
 		"\t time %v\n"+
 		"\t message %d\n",
-		o.icao,
-		o.flight,
-		o.altitude,
-		o.speed,
-		o.course,
-		o.latitude,
-		o.longitude,
-		o.seen,
-		o.dateTime,
-		o.messages)
+		o.Icao,
+		o.Flight,
+		o.Altitude,
+		o.Speed,
+		o.Course,
+		o.Latitude,
+		o.Longitude,
+		o.Seen,
+		o.DateTime,
+		o.Messages)
 }

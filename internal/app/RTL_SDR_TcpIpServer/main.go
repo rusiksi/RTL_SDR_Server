@@ -1,13 +1,14 @@
 package main
 
 import (
+	"RTL_SDR_Server/configs"
 	"RTL_SDR_Server/internal/pkg/netWorker"
 	"log"
 )
 
 func main() {
 
-	config := netWorker.NewConfig()
+	config := configs.GetNetworkConfig()
 	tcpServer, err := netWorker.NewServer(config)
 	if err != nil {
 		panic(err)

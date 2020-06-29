@@ -1,6 +1,7 @@
 package netWorker
 
 import (
+	"RTL_SDR_Server/configs"
 	"fmt"
 	"log"
 	"net"
@@ -12,7 +13,7 @@ var tcpServer Server
 
 func init() {
 
-	config := NewConfig()
+	config := configs.GetNetworkConfig()
 	config.Address = "127.0.0.1:62001"
 	tcpServer, err := NewServer(config)
 

@@ -1,17 +1,22 @@
 package pkgProcessor
 
 import (
+	"RTL_SDR_Server/configs"
 	"RTL_SDR_Server/internal/pkg/classesRTO"
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/streadway/amqp"
 	"io"
+	"log"
 	"net"
 )
 
 const CH_SIZE int = 100
 const constMinSize int = 8 // минимальный размер пакета, котором передаётся размер и количество байт
+
 
 // интерфейс для реализации процессора данных
 // ReadData - чтение из сетевого интерфеса блока данных
@@ -27,6 +32,7 @@ type dataFrame struct {
 	countFrame uint32 // количество блоков данных в пакете
 	data       []byte // бинарный массиов данных
 }
+
 
 // имплеоментация интерфеса процессора IPkgProcessor
 type PkgProcessorImpl struct {
@@ -92,14 +98,35 @@ func (pkgProc *PkgProcessorImpl) ReadData(conn net.Conn) error {
 	return nil
 }
 
+func handleError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+
+}
+
 // выполняется в отдельной горутине,обработка закончится,
 // когда канал с данными будет закрыт
 func (pkgProc *PkgProcessorImpl) processData(df chan dataFrame) {
 	if pkgProc == nil {
 		return
 	}
+	configRMQ := configs.GetRMQConfig()
+	conn, err := amqp.Dial(configRMQ.AMQPConnectionURL)
+	handleError(err, "Can't connect to AMQP")
+	defer conn.Close()
+
+	amqpChannel, err := conn.Channel()
+	handleError(err, "Can't create a amqpChannel")
+
+	defer amqpChannel.Close()
+
+	queue, err := amqpChannel.QueueDeclare("add", true, false, false, false, nil)
+	handleError(err, "Could not declare `add` queue")
+
+
 	for v := range df {
-		pkgProc.parseRawData(v)
+		pkgProc.parseRawData(v,amqpChannel, &queue)
 	}
 }
 
@@ -109,7 +136,7 @@ func (pkgProc *PkgProcessorImpl) processData(df chan dataFrame) {
 // uint32_t sizeFrame   - размер 1 блока данных
 // uint32_t countFrame  - количество блоков данных
 // ==========1...countFrame кадров данных========
-func (pkgProc *PkgProcessorImpl) parseRawData(df dataFrame) {
+func (pkgProc *PkgProcessorImpl) parseRawData(df dataFrame,amqpChannel* amqp.Channel,queue* amqp.Queue) {
 
 	//fmt.Println("sizeFrame = ", df.sizeFrame, "countFrame = ", df.countFrame)
 	//fmt.Println(hex.Dump(df.data))
@@ -123,6 +150,20 @@ func (pkgProc *PkgProcessorImpl) parseRawData(df dataFrame) {
 
 		object.Unserialize(df.data[df.sizeFrame*i:])
 
+		body, err := json.Marshal(object)
+		if err != nil {
+			handleError(err, "Error encoding JSON")
+		}
+
+		err = amqpChannel.Publish("", queue.Name, false, false, amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         body,
+		})
+
+		if err != nil {
+			log.Fatalf("Error publishing message: %s", err)
+		}
 		//TODO: здесь нужно передавать данные дальше по pipeline на обработку
 		fmt.Println(object)
 	}
