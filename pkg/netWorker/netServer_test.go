@@ -1,8 +1,8 @@
 package netWorker
 
 import (
-	"RTL_SDR_Server/configs"
 	"fmt"
+	"github.com/art-injener/RTL_SDR_Server/configs"
 	"log"
 	"net"
 	"testing"

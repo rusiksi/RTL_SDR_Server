@@ -16,18 +16,17 @@ var constLonLSB float64 = 360.0 / math.Pow(2, 31)
 //ЦМР для распаковки значения широты
 var constLatLSB float64 = 180.0 / math.Pow(2, 31)
 
-
 type BaseRTO struct {
-	Icao      uint32    `json:"icao"`// ICAO самолёта
-	Flight    string    `json:"flight"`// наименование рейса
-	Altitude  float32   `json:"altitude"`// высота
-	Speed     float32   `json:"speed"`// скорость
-	Course    float32   `json:"course"`// курс
-	Latitude  float64   `json:"latitude"`// широта
-	Longitude float64   `json:"longitude"`// долгота
-	Seen      int64     `json:"seen"`// время последней регистрации в эфире в UTC
-	DateTime  time.Time `json:"dateTime"`// время последней регистрации в эфире
-	Messages  uint32    `json:"messages"`// количество сообщений
+	Icao      uint32    `json:"icao"`      // ICAO самолёта
+	Flight    string    `json:"flight"`    // наименование рейса
+	Altitude  float32   `json:"altitude"`  // высота
+	Speed     float32   `json:"speed"`     // скорость
+	Course    float32   `json:"course"`    // курс
+	Latitude  float64   `json:"latitude"`  // широта
+	Longitude float64   `json:"longitude"` // долгота
+	Seen      int64     `json:"seen"`      // время последней регистрации в эфире в UTC
+	DateTime  time.Time `json:"dateTime"`  // время последней регистрации в эфире
+	Messages  uint32    `json:"messages"`  // количество сообщений
 }
 
 //кадр данных содержит следующую информацию
@@ -47,7 +46,7 @@ func (o *BaseRTO) Unserialize(data []byte) {
 	var sizeFlightStr = 9
 	var offset = 0
 
-	if len(data) <= 0{
+	if len(data) <= 0 {
 		return
 	}
 

@@ -1,0 +1,33 @@
+# docker-compose.yml
+version: "3.2"
+
+services:
+    rtl_sdr_server:
+        build:
+            context: ./
+            dockerfile: ./cmd/RTL_SDR_TcpIpServer/Dockerfile
+        ports:
+            - 62000:62000
+        restart: on-failure
+        depends_on:
+            - rabbitmq
+
+    rabbitmq:
+        image: "rabbitmq:3-management"
+        ports:
+            - 127.0.0.1:15672:15672
+            - 127.0.0.1:5672:5672
+        restart: always
+        healthcheck:
+            test: ["CMD", "nc", "-z", "localhost", "5672"]
+            interval: 10s
+            timeout: 10s
+            retries: 3
+
+    consumerrmq:
+        build:
+            context: ./
+            dockerfile: ./cmd/ConsumerRMQService/Dockerfile
+        restart: on-failure
+        depends_on:
+            - rabbitmq

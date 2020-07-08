@@ -1,9 +1,9 @@
 package main
 
 import (
-	"RTL_SDR_Server/configs"
-	"RTL_SDR_Server/internal/pkg/classesRTO"
 	"encoding/json"
+	"github.com/art-injener/RTL_SDR_Server/configs"
+	"github.com/art-injener/RTL_SDR_Server/pkg/classesRTO"
 	"github.com/streadway/amqp"
 	"log"
 	"os"

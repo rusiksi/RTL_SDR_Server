@@ -1,10 +1,10 @@
 package netWorker
 
 import (
-	"RTL_SDR_Server/configs"
-	"RTL_SDR_Server/internal/pkg/pkgProcessor"
 	"errors"
 	"fmt"
+	"github.com/art-injener/RTL_SDR_Server/configs"
+	"github.com/art-injener/RTL_SDR_Server/pkg/pkgProcessor"
 	"log"
 	"net"
 	"strings"

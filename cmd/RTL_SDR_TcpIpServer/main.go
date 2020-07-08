@@ -1,8 +1,8 @@
 package main
 
 import (
-	"RTL_SDR_Server/configs"
-	"RTL_SDR_Server/internal/pkg/netWorker"
+	"github.com/art-injener/RTL_SDR_Server/configs"
+	"github.com/art-injener/RTL_SDR_Server/pkg/netWorker"
 	"log"
 )
 
