@@ -89,6 +89,57 @@ func (o *BaseRTO) Unserialize(data []byte) {
 	o.Messages = binary.LittleEndian.Uint32(data[startByteIndex:offset])
 }
 
+func (o *BaseRTO) Serialize() []byte {
+	var startByteIndex int = 0
+	var sizeInt32 = 4
+	var sizeInt64 = 8
+	var sizeFlightStr = 9
+	var offset = 0
+
+	data := make([]byte, 46)
+
+	// ICAO - 0 : 4
+	startByteIndex, offset = 0, sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], o.Icao)
+
+	//flight - 4:13
+	startByteIndex, offset = offset, offset+sizeFlightStr
+	b := make([]byte, 9)
+	copy(b, o.Flight)
+
+	copy(data[startByteIndex:offset], b)
+
+	//altitude - 13:17
+	startByteIndex, offset = offset, offset+sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], uint32(o.Altitude*constValueLSB))
+
+	//speed - 17:21
+	startByteIndex, offset = offset, offset+sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], uint32(o.Speed*constValueLSB))
+
+	//course - 21:25
+	startByteIndex, offset = offset, offset+sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], uint32(o.Course*constValueLSB))
+
+	//latitude - 25:29
+	startByteIndex, offset = offset, offset+sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], uint32(o.Latitude/constLatLSB))
+
+	//longitude - 29 :33
+	startByteIndex, offset = offset, offset+sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], uint32(o.Longitude/constLonLSB))
+
+	//seen - 33 : 41
+	startByteIndex, offset = offset, offset+sizeInt64
+	binary.LittleEndian.PutUint64(data[startByteIndex:offset], uint64(o.Seen))
+
+	//messages - 41 : 45
+	startByteIndex, offset = offset, offset+sizeInt32
+	binary.LittleEndian.PutUint32(data[startByteIndex:offset], o.Messages)
+
+	return data
+}
+
 func (o *BaseRTO) String() string {
 	return fmt.Sprintf("aircraft %X (flyight %s) \n"+
 		"\t altitude %f\n"+

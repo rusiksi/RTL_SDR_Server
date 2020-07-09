@@ -87,6 +87,7 @@ func (pkgProc *PkgProcessorImpl) ReadData(conn net.Conn) error {
 		lenData, err := conn.Read(msgHdr.data)
 
 		if lenData != sizePkg {
+			log.Printf("Read bytes = %d, but sizePkg = %d  \n", lenData, sizePkg)
 			return errors.New("Error reading main data block \n")
 		}
 		// передача в канал для последующего декодирования данных
@@ -109,6 +110,8 @@ func (pkgProc *PkgProcessorImpl) processData(df chan dataFrame) {
 	if pkgProc == nil {
 		return
 	}
+
+	//TODO:вынести подключение в отдельную функцию
 	configRMQ := configs.GetRMQConfig()
 	conn, err := amqp.Dial(configRMQ.AMQPConnectionURL)
 

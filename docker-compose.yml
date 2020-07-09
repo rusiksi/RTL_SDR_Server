@@ -31,3 +31,13 @@ services:
         restart: on-failure
         depends_on:
             - rabbitmq
+
+    imitreciver:
+        build:
+            context: ./
+            dockerfile: ./cmd/ImitRTL_SDR_Reciver/Dockerfile
+        depends_on:
+          - rtl_sdr_server
+        links:
+          - rtl_sdr_server:server
+        restart: on-failure
