@@ -20,5 +20,6 @@ func GetRMQConfig() *ConfigRabbitMQ {
 	return &ConfigRabbitMQ{
 		//TODO: вынести в переменные окружения
 		AMQPConnectionURL: "amqp://guest:guest@rabbitmq:5672/",
+		//AMQPConnectionURL: "amqp://guest:guest@127.0.0.1:5672/",
 	}
 }
